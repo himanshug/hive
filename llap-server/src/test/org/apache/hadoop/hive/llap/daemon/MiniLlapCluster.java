@@ -155,19 +155,21 @@ public class MiniLlapCluster extends AbstractService {
     HiveConf.setIntVar(conf, ConfVars.LLAP_DAEMON_OUTPUT_SERVICE_PORT, outputFormatServicePort);
 
     if (ownZkCluster) {
-      miniZooKeeperCluster = new MiniZooKeeperCluster();
-      miniZooKeeperCluster.startup(zkWorkDir);
+      // miniZooKeeperCluster = new MiniZooKeeperCluster();
+      // miniZooKeeperCluster.startup(zkWorkDir);
     } else {
       // Already setup in the create method
     } 
 
     conf.set(ConfVars.LLAP_DAEMON_SERVICE_HOSTS.varname, "@" + clusterNameTrimmed);
     conf.set(ConfVars.HIVE_ZOOKEEPER_QUORUM.varname, "localhost");
-    conf.setInt(ConfVars.HIVE_ZOOKEEPER_CLIENT_PORT.varname, miniZooKeeperCluster.getClientPort());
+    // conf.setInt(ConfVars.HIVE_ZOOKEEPER_CLIENT_PORT.varname, miniZooKeeperCluster.getClientPort());
+    conf.setInt(ConfVars.HIVE_ZOOKEEPER_CLIENT_PORT.varname, 2181);
     // Also add ZK settings to clusterSpecificConf to make sure these get picked up by whoever started this.
     clusterSpecificConfiguration.set(ConfVars.LLAP_DAEMON_SERVICE_HOSTS.varname, "@" + clusterNameTrimmed);
     clusterSpecificConfiguration.set(ConfVars.HIVE_ZOOKEEPER_QUORUM.varname, "localhost");
-    clusterSpecificConfiguration.setInt(ConfVars.HIVE_ZOOKEEPER_CLIENT_PORT.varname, miniZooKeeperCluster.getClientPort());
+    // clusterSpecificConfiguration.setInt(ConfVars.HIVE_ZOOKEEPER_CLIENT_PORT.varname, miniZooKeeperCluster.getClientPort());
+    clusterSpecificConfiguration.setInt(ConfVars.HIVE_ZOOKEEPER_CLIENT_PORT.varname, 2181);
 
     boolean externalClientCloudSetupEnabled = LlapUtil.isCloudDeployment(conf);
 
@@ -228,5 +230,19 @@ public class MiniLlapCluster extends AbstractService {
       numSubmissions += llapDaemons[i].getNumSubmissions();
     }
     return numSubmissions;
+  }
+
+  public static void main(String[] args) throws Exception {
+    HiveConf conf = new HiveConf();
+
+    MiniLlapCluster cluster = MiniLlapCluster.create("llap01", null, 1, 2L, false, false, 1L, 1);
+    HiveConf.setVar(conf, HiveConf.ConfVars.LLAP_DAEMON_XMX_HEADROOM, "1");
+    cluster.serviceInit(conf);
+    cluster.serviceStart();
+    System.out.println("Himanshu: Started....");
+    System.in.read();
+    System.out.println("Himanshu: Stopping....");
+
+    cluster.serviceStop();
   }
 }
