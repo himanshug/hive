@@ -310,6 +310,10 @@ public class HiveServer2 extends CompositeService {
           hs2HARegistry = HS2ActivePassiveHARegistry.create(hiveConf, false);
         }
       }
+
+      if (!serviceDiscovery || !activePassiveHA) {
+        allowClientSessions();
+      }
     } catch (Exception e) {
       throw new ServiceException(e);
     }
