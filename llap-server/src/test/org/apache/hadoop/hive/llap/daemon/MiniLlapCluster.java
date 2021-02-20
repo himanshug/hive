@@ -235,7 +235,12 @@ public class MiniLlapCluster extends AbstractService {
   public static void main(String[] args) throws Exception {
     HiveConf conf = new HiveConf();
 
-    MiniLlapCluster cluster = MiniLlapCluster.create("llap01", null, 1, 2L, false, false, 1L, 1);
+    // To fix java.lang.IllegalArgumentException: tez.runtime.io.sort.mb 100 should be larger than 0 and should be less than the available task memory (MB):0
+    // Each executor should be given enough memory executor memory = total/num-executors,
+    // See all the global variables of LlapDaemon
+    // needed to increase executorMemoryPerInstance that goes to ContainerRunnerImpl that creates per task "container"
+    // Tez ExternalSorter.getInitialMemoryRequirement() uses default 100M for tez.runtime.io.sort.mb
+    MiniLlapCluster cluster = MiniLlapCluster.create("llap01", null, 1, 512*1024*1024L, false, false, 1L, 1);
     HiveConf.setVar(conf, HiveConf.ConfVars.LLAP_DAEMON_XMX_HEADROOM, "1");
     cluster.serviceInit(conf);
     cluster.serviceStart();
